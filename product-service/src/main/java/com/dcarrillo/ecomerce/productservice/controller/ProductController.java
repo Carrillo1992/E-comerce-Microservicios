@@ -2,7 +2,6 @@ package com.dcarrillo.ecomerce.productservice.controller;
 
 import com.dcarrillo.ecomerce.productservice.dto.CreateProductDTO;
 import com.dcarrillo.ecomerce.productservice.dto.ProductDTO;
-import com.dcarrillo.ecomerce.productservice.entity.Product;
 import com.dcarrillo.ecomerce.productservice.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -25,7 +24,7 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> productList(@RequestParam Pageable pageable){
+    public ResponseEntity<Page<ProductDTO>> productList(Pageable pageable){
         Page<ProductDTO> productDTOS = service.findAll(pageable);
         return ResponseEntity.ok(productDTOS);
     }

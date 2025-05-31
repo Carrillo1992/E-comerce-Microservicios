@@ -13,7 +13,7 @@ public class CreateProductDTO {
     @NotBlank
     private String name;
     @NotBlank
-    private String descrption;
+    private String description;
     @NotNull
     @DecimalMin("0.01")
     private BigDecimal price;

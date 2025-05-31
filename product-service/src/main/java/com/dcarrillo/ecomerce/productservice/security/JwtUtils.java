@@ -65,11 +65,11 @@ public class JwtUtils {
         return extractClaim(token, Claims::getExpiration);
     }
     private <T> T extractClaim(String token, Function<Claims ,T> claimsResolver){
-        final Claims claims = extractAllClaim(token);
+        final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
-    private Claims extractAllClaim(String token){
+    public Claims extractAllClaims(String token){
         return Jwts.parserBuilder()
                 .setSigningKey(jwtSecretKey)
                 .build()

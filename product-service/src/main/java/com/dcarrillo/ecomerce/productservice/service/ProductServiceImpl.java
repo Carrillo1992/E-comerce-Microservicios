@@ -34,7 +34,7 @@ public class ProductServiceImpl implements ProductService {
         product.setName(createProductDTO.getName());
         product.setPrice(createProductDTO.getPrice());
         product.setStock(createProductDTO.getStock());
-        product.setDescription(createProductDTO.getDescrption());
+        product.setDescription(createProductDTO.getDescription());
         product.setCategory(categoryRepository.findById(createProductDTO.getCategoryId())
                 .orElseThrow(()-> new RuntimeException("Categoria no encontrada")));
         productRepository.save(product);
@@ -73,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
 
         product.setName(createProductDTO.getName());
         product.setPrice(createProductDTO.getPrice());
-        product.setDescription(createProductDTO.getDescrption());
+        product.setDescription(createProductDTO.getDescription());
         product.setStock(createProductDTO.getStock());
         product.setCategory(categoryRepository.findById(createProductDTO.getCategoryId())
                 .orElseThrow(()-> new RuntimeException("Categoria no encontrada")));
@@ -98,7 +98,7 @@ public class ProductServiceImpl implements ProductService {
         productDTO.setName(product.getName());
         productDTO.setPrice(product.getPrice());
         productDTO.setStock(product.getStock());
-        productDTO.setDescrption(product.getDescription());
+        productDTO.setDescription(product.getDescription());
         productDTO.setCategoryName(product.getCategory().getName());
         return productDTO;
     }

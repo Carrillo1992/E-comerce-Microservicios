@@ -36,7 +36,7 @@ public class Product {
     @CreationTimestamp
     private Timestamp createdAt;
     @UpdateTimestamp
-    private Timestamp updateAt;
+    private Timestamp updatedAt ;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
