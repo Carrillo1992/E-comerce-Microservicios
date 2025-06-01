@@ -1,4 +1,5 @@
-package com.dcarrillo.ecomerce.productservice.security;
+package com.dcarrillo.ecomerce.orderservice.security;
+
 
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -10,8 +11,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,7 +21,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 
 @Component
 public class JwtRequestFilter  extends OncePerRequestFilter {
@@ -39,6 +39,7 @@ public class JwtRequestFilter  extends OncePerRequestFilter {
 
         String username = null;
         String jwt = null;
+        Long userId = null;
         List<String> roles = new ArrayList<>();
 
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
@@ -46,7 +47,10 @@ public class JwtRequestFilter  extends OncePerRequestFilter {
             try {
                 username = jwtUtils.extractUsername(jwt);
                 Claims claims = jwtUtils.extractAllClaims(jwt);
-                roles = claims.get("roles", List.class);
+                if (claims != null) {
+                    roles = claims.get("roles", List.class);
+                    userId = claims.get("userId", Long.class);
+                }
             }catch (io.jsonwebtoken.ExpiredJwtException e){
                 System.out.println("JWT token expiro" + e.getMessage());
             }catch (io.jsonwebtoken.JwtException e){
@@ -54,21 +58,27 @@ public class JwtRequestFilter  extends OncePerRequestFilter {
             }
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null){
-            List<GrantedAuthority>authorities= new ArrayList<>();
-            if (roles != null){
-                authorities = roles.stream()
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+        if (username != null && userId !=null && SecurityContextHolder.getContext().getAuthentication() == null){
+
+            if (jwt !=null && !jwtUtils.isTokenExpired(jwt)){
+
+                List<GrantedAuthority>authorities= new ArrayList<>();
+                if (roles != null){
+                    authorities = roles.stream()
+                            .map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
+                }
+                UserPrincipal userPrincipal = new UserPrincipal(userId, username, "", authorities);
+                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                        new UsernamePasswordAuthenticationToken(userPrincipal, null , authorities);
+
+                usernamePasswordAuthenticationToken
+                        .setDetails( new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+            }else {
+                System.out.println("Token JWT para " + username + " es invalido o a expirado");
             }
-
-            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
-                    new UsernamePasswordAuthenticationToken(username, null , authorities);
-
-            usernamePasswordAuthenticationToken
-                    .setDetails( new WebAuthenticationDetailsSource().buildDetails(request));
-
-            SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
 
         }
 

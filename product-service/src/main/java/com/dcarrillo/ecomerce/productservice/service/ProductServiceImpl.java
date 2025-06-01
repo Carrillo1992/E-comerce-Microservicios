@@ -63,7 +63,7 @@ public class ProductServiceImpl implements ProductService {
             throw new RuntimeException("Categoria no encontrada");
         }
         Page<Product> productPage = productRepository.findByCategoryId(categoryId, pageable);
-        return productPage.map(product -> getProductDTO(product));
+        return productPage.map(this::getProductDTO);
     }
 
     @Transactional
@@ -92,7 +92,7 @@ public class ProductServiceImpl implements ProductService {
 
     }
 
-    private static ProductDTO getProductDTO(Product product) {
+    private ProductDTO getProductDTO(Product product) {
         ProductDTO productDTO =  new ProductDTO();
         productDTO.setId(product.getId());
         productDTO.setName(product.getName());
