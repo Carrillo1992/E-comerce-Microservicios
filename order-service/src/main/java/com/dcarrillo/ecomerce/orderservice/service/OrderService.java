@@ -1,8 +1,8 @@
 package com.dcarrillo.ecomerce.orderservice.service;
 
 
-import com.dcarrillo.ecomerce.orderservice.dto.CreateOrderRequestDTO;
-import com.dcarrillo.ecomerce.orderservice.dto.OrderResponseDTO;
+import com.dcarrillo.ecomerce.orderservice.dto.request.CreateOrderRequestDTO;
+import com.dcarrillo.ecomerce.orderservice.dto.response.OrderResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

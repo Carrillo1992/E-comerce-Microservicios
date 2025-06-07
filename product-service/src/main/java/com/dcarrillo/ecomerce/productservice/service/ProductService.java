@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface ProductService {
 
-    ProductDTO createProducto(CreateProductDTO CreateProductoDTO);
+    ProductDTO createProduct(CreateProductDTO CreateProductoDTO);
 
     Optional<ProductDTO> findProductById(Long id);
 
@@ -18,6 +18,9 @@ public interface ProductService {
     Page<ProductDTO> findProductByCategory(Long categoryId, Pageable pageable);
 
     ProductDTO updateProduct (Long id , CreateProductDTO CreateProductoDTO);
+
+
+    void updateStock(Long id, Integer quantity);
 
     void deleteProduct(Long id);
 }

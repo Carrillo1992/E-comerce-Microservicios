@@ -1,12 +1,14 @@
 package com.dcarrillo.ecomerce.orderservice.security;
 
 import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
 @AllArgsConstructor
+@Data
 public class UserPrincipal implements UserDetails {
 
     private Long userId;
@@ -27,9 +29,5 @@ public class UserPrincipal implements UserDetails {
     @Override
     public String getUsername() {
         return this.username;
-    }
-
-    public Long getUserId(){
-        return this.userId;
     }
 }

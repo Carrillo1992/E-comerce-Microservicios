@@ -1,0 +1,26 @@
+server:
+  port: ${SERVER_PORT}
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: user-service-route
+          uri: ${USER_SERVICE_URI}
+          predicates:
+            - Path=/api/v1/auth/**,/api/v1/users/**
+
+        - id: product-service-route
+          uri: ${PRODUCT_SERVICE_URI}
+          predicates:
+            - Path=/api/v1/products/**
+        - id: order-service-route
+          uri: ${ORDER_SERVICE_URI}
+          predicates:
+            - Path=/api/v1/orders/**
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  expiration:
+    ms: ${JWT_EXPIRATION_MS}

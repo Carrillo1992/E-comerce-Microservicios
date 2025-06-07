@@ -1,4 +1,4 @@
-package com.dcarrillo.ecomerce.orderservice.dto;
+package com.dcarrillo.ecomerce.orderservice.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

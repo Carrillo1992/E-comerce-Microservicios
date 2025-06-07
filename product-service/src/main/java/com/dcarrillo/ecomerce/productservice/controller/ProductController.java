@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.Optional;
 
@@ -30,30 +31,42 @@ public class ProductController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<?> productById(@PathVariable Long id ){
-        Optional<ProductDTO> productDTOOptional = service.findProductById(id);
-        return productDTOOptional
-                .map(dto -> ResponseEntity.ok().body(dto))
-                .orElseGet(()-> ResponseEntity.notFound().build());
+        Optional<ProductDTO> productDTOOptional = null;
+        try {
+            productDTOOptional = service.findProductById(id);
+        }catch (HttpClientErrorException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+        return  ResponseEntity.ok().body(productDTOOptional);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody CreateProductDTO createProductDTO){
-        ProductDTO productDTO = service.createProducto(createProductDTO);
+        ProductDTO productDTO = service.createProduct(createProductDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(productDTO);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ProductDTO> updateProduct(@PathVariable Long id, @Valid @RequestBody CreateProductDTO createProductDTO){
-        ProductDTO productDTO = service.updateProduct(id, createProductDTO);
+    public ResponseEntity<?> updateProduct(@PathVariable Long id, @Valid @RequestBody CreateProductDTO createProductDTO){
+        ProductDTO productDTO = null;
+        try {
+            productDTO = service.updateProduct(id, createProductDTO);
+        }catch (HttpClientErrorException e){
+            return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
         return ResponseEntity.ok().body(productDTO);
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteProduct(@PathVariable Long id){
-        service.deleteProduct(id);
+        try {
+            service.deleteProduct(id);
+        }catch (HttpClientErrorException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
         return ResponseEntity.noContent().build();
     }
 }

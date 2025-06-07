@@ -11,7 +11,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Entity
-@Table(name = "item_order")
+@Table(name="item_order")
 @Getter
 @Setter
 @NoArgsConstructor

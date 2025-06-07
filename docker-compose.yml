@@ -1,0 +1,162 @@
+
+services:
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql_ecommerce_db
+    ports:
+      - "${DB_PORT}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - mysql_ecommerce_data:/var/lib/mysql
+      - ./init-scripts/mysql:/docker-entrypoint-initdb.d
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u${DB_USER}", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq-server:
+    image: rabbitmq:3-management
+    container_name: rabbitmq_ecommerce
+    ports:
+      - "5673:5672"    
+      - "15673:15672" 
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_ecommerce_data:/var/lib/rabbitmq
+    networks:
+      - ecommerce-network
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    ports:
+      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
+    environment:
+      SERVER_PORT: ${USER_SERVICE_PORT}
+      SPRING_APPLICATION_NAME: user-service
+      DB_HOST: ${DB_HOST}
+      DB_PORT: 3306
+      DB_NAME_USUARIOS: ${DB_NAME_USUARIOS}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DDL_AUTO: ${DDL_AUTO}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      rabbitmq-server:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    ports:
+      - "${PRODUCT_SERVICE_PORT}:${PRODUCT_SERVICE_PORT}"
+    environment:
+      SERVER_PORT: ${PRODUCT_SERVICE_PORT}
+      SPRING_APPLICATION_NAME: product-service
+      DB_HOST: ${DB_HOST}
+      DB_PORT: 3306
+      DB_NAME_PRODUCTOS: ${DB_NAME_PRODUCTOS}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DDL_AUTO: ${DDL_AUTO}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASS: ${RABBITMQ_DEFAULT_PASS}
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      rabbitmq-server:
+        condition: service_healthy
+    networks:
+      - ecommerce-network
+
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "${ORDER_SERVICE_PORT}:${ORDER_SERVICE_PORT}"
+    environment:
+      SERVER_PORT: ${ORDER_SERVICE_PORT}
+      SPRING_APPLICATION_NAME: order-service
+      DB_HOST: ${DB_HOST}
+      DB_PORT: 3306
+      DB_NAME_PEDIDOS: ${DB_NAME_PEDIDOS}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DDL_AUTO: ${DDL_AUTO}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASS: ${RABBITMQ_DEFAULT_PASS}
+      PRODUCT_SERVICE_HOST: ${PRODUCT_SERVICE_HOST}
+      PRODUCT_SERVICE_PORT: ${PRODUCT_SERVICE_PORT}
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      rabbitmq-server:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+    networks:
+      - ecommerce-network
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      SPRING_APPLICATION_NAME: api-gateway
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      USER_SERVICE_URI: ${USER_SERVICE_URI}
+      PRODUCT_SERVICE_URI: ${PRODUCT_SERVICE_URI}
+      ORDER_SERVICE_URI: ${ORDER_SERVICE_URI}
+    depends_on:
+      - user-service
+      - product-service
+      - order-service
+    networks:
+      - ecommerce-network
+
+
+volumes:
+  mysql_ecommerce_data:
+  rabbitmq_ecommerce_data:
+
+
+networks:
+  ecommerce-network:
+    driver: bridge
+
