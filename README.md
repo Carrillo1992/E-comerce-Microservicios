@@ -3,8 +3,8 @@ Este proyecto es una implementación de una plataforma de e-commerce completamen
 
 ## Arquitectura
 El sistema se compone de varios microservicios que se comunican de forma síncrona (REST) y asíncrona (eventos con RabbitMQ), con un API Gateway como único punto de entrada para los clientes.
-Componentes:
-### API Gateway: Punto de entrada único para todas las peticiones. Enruta el tráfico a los servicios internos y maneja la autenticación JWT como primera barrera de seguridad.
+**Componentes:**
+- **API Gateway:** Punto de entrada único para todas las peticiones. Enruta el tráfico a los servicios internos y maneja la autenticación JWT como primera barrera de seguridad.
 - **Servicio de Usuarios:** Gestiona todo lo relacionado con los usuarios, incluyendo el registro, login y la generación de tokens JWT.
 - **Servicio de Productos:** Gestiona el catálogo de productos y categorías. Escucha eventos para actualizar el stock.
 - **Servicio de Pedidos:** Permite a los usuarios crear y consultar sus pedidos. Se comunica con el servicio de productos para validar información y publica un evento cuando se crea un nuevo pedido.
