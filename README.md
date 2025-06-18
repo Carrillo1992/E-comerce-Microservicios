@@ -3,13 +3,14 @@ Este proyecto es una implementación de una plataforma de e-commerce completamen
 
 ## Arquitectura
 El sistema se compone de varios microservicios que se comunican de forma síncrona (REST) y asíncrona (eventos con RabbitMQ), con un API Gateway como único punto de entrada para los clientes.
+
 **Componentes:**
 - **API Gateway:** Punto de entrada único para todas las peticiones. Enruta el tráfico a los servicios internos y maneja la autenticación JWT como primera barrera de seguridad.
 - **Servicio de Usuarios:** Gestiona todo lo relacionado con los usuarios, incluyendo el registro, login y la generación de tokens JWT.
 - **Servicio de Productos:** Gestiona el catálogo de productos y categorías. Escucha eventos para actualizar el stock.
 - **Servicio de Pedidos:** Permite a los usuarios crear y consultar sus pedidos. Se comunica con el servicio de productos para validar información y publica un evento cuando se crea un nuevo pedido.
 - **RabbitMQ:** Broker de mensajería utilizado para la comunicación asíncrona, desacoplando la creación de pedidos de la actualización de stock.
-- **MySQL:** Base de datos relacional. Cada microservicio tiene su propio esquema de base de datos para asegurar la autonomía (users_db, products_db, orders_db).
+- **MySQL:** Base de datos relacional. Cada microservicio tiene su propio esquema de base de datos para asegurar la autonomía (users_db, products_db, orders_db, carts_db).
 ## Tecnologías Utilizadas
 - **Backend:** Java 23, Spring Boot 3.5.0, Spring Security
 - **API Gateway:** Spring Cloud Gateway
@@ -52,6 +53,7 @@ DB_PASSWORD=password_seguro_para_ecommerce_user
 DB_NAME_USUARIOS=users_db
 DB_NAME_PRODUCTOS=products_db
 DB_NAME_PEDIDOS=orders_db
+DB_NAME_CART=cart_db
 DDL_AUTO=update
 
 # Configuración de JWT (JSON Web Token)
@@ -65,11 +67,13 @@ API_GATEWAY_INTERNAL_PORT=8080
 USER_SERVICE_INTERNAL_PORT=8081
 PRODUCT_SERVICE_INTERNAL_PORT=8082
 ORDER_SERVICE_INTERNAL_PORT=8083
+CART_SERVICE_INTERNAL_PORT=8084
 
 # Nombres de servicio para la red Docker
 USER_SERVICE_HOST_DOCKER=user-service
 PRODUCT_SERVICE_HOST_DOCKER=product-service
 ORDER_SERVICE_HOST_DOCKER=order-service
+CART_SERVICE_HOST_DOCKER=cart-service
 MYSQL_DB_HOST=mysql-db
 RABBITMQ_HOST=rabbitmq-server
 RABBITMQ_DEFAULT_USER=guest
@@ -79,6 +83,7 @@ RABBITMQ_DEFAULT_PASS=guest
 USER_SERVICE_URI=http://user-service:8081
 PRODUCT_SERVICE_URI=http://product-service:8082
 ORDER_SERVICE_URI=http://order-service:8083
+CART_SERVICE_URI=http://cart-service:8084
 
 ```
 
@@ -213,7 +218,41 @@ Crea un nuevo pedido.
 Obtiene el historial de pedidos del usuario autenticado.
 - **Autenticación:** Requiere token de usuario.
 - **Query Params:** ?page=0&size=10
-- **Success Response (200 OK):** Devuelve un objeto Page con la lista de pedidos del usuario. 
+- **Success Response (200 OK):** Devuelve un objeto Page con la lista de pedidos del usuario.
+
+**Carrito (cart-service)**
+**GET /api/v1/cart**
+
+Obtiene el historial de pedidos del usuario autenticado.
+- **Autenticación:** Requiere token de usuario.
+- **Success Response (200 OK):** Devuelve un lista de productos en el carrito del usuario.
+  
+**POST /api/v1/cart/items**
+
+Crea un nuevo carrito si no lo hay y añade el producto.
+- **Autenticación:** Requiere token de usuario. 
+- **Request Body:**
+```
+{
+  "productId": 1,
+  "quantity": 2
+}
+```
+
+- **Success Response (201 CREATED):** Devuelve el DTO del pedido creado.
+
+**DELETE /api/v1/cart**
+
+Elimina el carrito del usuario
+- **Autenticación:** Requiere token de usuario. 
+- **Success Response (204 NO_CONTENT):** 
+
+**DELETE /api/v1/cart/items/{id}**
+
+Elimina el producto en el carrito
+- **Autenticación:** Requiere token de usuario. 
+- **Success Response (200 OK):** Devuelve el DTO del carrito. 
+
 ### Pruebas
 Para ejecutar las pruebas unitarias y de integración, usa el siguiente comando Maven en la raíz del cada servicio:
 ```
