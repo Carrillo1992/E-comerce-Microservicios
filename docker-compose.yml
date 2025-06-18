@@ -128,6 +128,39 @@ services:
     networks:
       - ecommerce-network
 
+  cart-service:
+    build:
+      context: ./cart-service
+      dockerfile: Dockerfile
+    container_name: cart-service
+    ports:
+      - "${CART_SERVICE_PORT}:${CART_SERVICE_PORT}"
+    environment:
+      SERVER_PORT: ${CART_SERVICE_PORT}
+      SPRING_APPLICATION_NAME: cart-service
+      DB_HOST: ${DB_HOST}
+      DB_PORT: 3306
+      DB_NAME_CART: ${DB_NAME_CART}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DDL_AUTO: ${DDL_AUTO}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_PORT: ${RABBITMQ_PORT}
+      RABBITMQ_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_PASS: ${RABBITMQ_DEFAULT_PASS}
+      PRODUCT_SERVICE_HOST: ${PRODUCT_SERVICE_HOST}
+      PRODUCT_SERVICE_PORT: ${PRODUCT_SERVICE_PORT}
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      rabbitmq-server:
+        condition: service_healthy
+      product-service:
+        condition: service_started
+    networks:
+      - ecommerce-network
   api-gateway:
     build:
       context: ./api-gateway
@@ -143,10 +176,12 @@ services:
       USER_SERVICE_URI: ${USER_SERVICE_URI}
       PRODUCT_SERVICE_URI: ${PRODUCT_SERVICE_URI}
       ORDER_SERVICE_URI: ${ORDER_SERVICE_URI}
+      CART_SERVICE_URI: ${CART_SERVICE_URI}
     depends_on:
       - user-service
       - product-service
       - order-service
+      - cart-service
     networks:
       - ecommerce-network
 

@@ -2,14 +2,18 @@ package com.dcarrillo.ecomerce.productservice.service;
 
 import com.dcarrillo.ecomerce.productservice.dto.CreateProductDTO;
 import com.dcarrillo.ecomerce.productservice.dto.ProductDTO;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ProductService {
 
     ProductDTO createProduct(CreateProductDTO CreateProductoDTO);
+
+    List<ProductDTO> createMultipleProducts(@Valid List<CreateProductDTO> createProductDTOs);
 
     Optional<ProductDTO> findProductById(Long id);
 

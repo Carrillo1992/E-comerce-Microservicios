@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -36,6 +38,9 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id",referencedColumnName = "id")
     )
     private Set<Role> roles = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Address> addresses= new ArrayList<>();
 
     public User(String name, String email, String passwordHash) {
         this.name = name;

@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -45,6 +46,13 @@ public class ProductController {
     public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody CreateProductDTO createProductDTO){
         ProductDTO productDTO = service.createProduct(createProductDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(productDTO);
+    }
+
+    @PostMapping("/batch")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ProductDTO>> createMultipleProducts(@Valid @RequestBody List<CreateProductDTO> createProductDTOs){
+        List<ProductDTO> productDTOs = service.createMultipleProducts(createProductDTOs);
+        return ResponseEntity.status(HttpStatus.CREATED).body(productDTOs);
     }
 
     @PutMapping("/{id}")

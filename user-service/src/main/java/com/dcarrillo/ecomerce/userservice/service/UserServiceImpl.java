@@ -1,12 +1,15 @@
 package com.dcarrillo.ecomerce.userservice.service;
 
 import com.dcarrillo.ecomerce.userservice.dto.UserRegisterDTO;
+import com.dcarrillo.ecomerce.userservice.entity.Address;
 import com.dcarrillo.ecomerce.userservice.entity.Role;
 import com.dcarrillo.ecomerce.userservice.entity.User;
+import com.dcarrillo.ecomerce.userservice.repository.AddressRepository;
 import com.dcarrillo.ecomerce.userservice.repository.RoleRepository;
 import com.dcarrillo.ecomerce.userservice.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +18,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.HttpClientErrorException;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,14 +28,16 @@ public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final AddressRepository addressRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
     public UserServiceImpl(UserRepository userRepository,
-                           RoleRepository roleRepository,
+                           RoleRepository roleRepository, AddressRepository addressRepository,
                            @Lazy PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -66,6 +72,33 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public List<User> findALl() {
         return userRepository.findAll();
+    }
+
+    @Override
+    public List<Address> getUserAddresses(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(()-> new UsernameNotFoundException("Usuario no encontrado"));
+        return user.getAddresses();
+    }
+
+    @Override
+    public Address addAddressToUser(String email, Address newAddress) {
+        User user = userRepository.findByEmail(email).
+                orElseThrow(()-> new UsernameNotFoundException("Usuario no encontrado"));
+
+        newAddress.setUser(user);
+        user.getAddresses().add(newAddress);
+        userRepository.save(user);
+
+        return newAddress;
+    }
+
+    @Override
+    public void deleteUserAddress(Long addressId) {
+        if (addressRepository.findById(addressId).isEmpty()){
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND,"Producto no encontrado");
+        }
+        addressRepository.deleteById(addressId);
     }
 
     @Override

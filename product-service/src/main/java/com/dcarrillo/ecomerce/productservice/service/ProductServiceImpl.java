@@ -1,10 +1,13 @@
 package com.dcarrillo.ecomerce.productservice.service;
 
+import com.dcarrillo.ecomerce.productservice.config.RabbitMQProducerConfig;
 import com.dcarrillo.ecomerce.productservice.dto.CreateProductDTO;
 import com.dcarrillo.ecomerce.productservice.dto.ProductDTO;
+import com.dcarrillo.ecomerce.productservice.dto.event.DeletedProductDTO;
 import com.dcarrillo.ecomerce.productservice.entity.Product;
 import com.dcarrillo.ecomerce.productservice.repository.CategoryRepository;
 import com.dcarrillo.ecomerce.productservice.repository.ProductRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -14,19 +17,23 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class ProductServiceImpl implements ProductService {
 
 
+    private final RabbitTemplate rabbitTemplate;
     ProductRepository productRepository;
     CategoryRepository categoryRepository;
 
 
-    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository) {
+    public ProductServiceImpl(ProductRepository productRepository, CategoryRepository categoryRepository, RabbitTemplate rabbitTemplate) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
+        this.rabbitTemplate = rabbitTemplate;
     }
 
     @Transactional
@@ -43,6 +50,16 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
 
         return getProductDTO(product);
+    }
+
+    @Transactional
+    @Override
+    public List<ProductDTO> createMultipleProducts(List<CreateProductDTO> createProductDTOs) {
+        List<ProductDTO> productDTOS =new ArrayList<>();
+        createProductDTOs.forEach(product ->{
+            productDTOS.add(createProduct(product));
+        });
+        return productDTOS;
     }
 
     @Transactional(readOnly = true)
@@ -92,6 +109,12 @@ public class ProductServiceImpl implements ProductService {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND,"Producto no encontrado");
         }
         productRepository.deleteById(id);
+        DeletedProductDTO deleted = new DeletedProductDTO();
+        deleted.setId(id);
+        rabbitTemplate.convertAndSend(RabbitMQProducerConfig.EXCHANGE_NAME,
+                RabbitMQProducerConfig.ROUTING_KEY_PRODUCT_DELETED,
+                deleted);
+
 
     }
 

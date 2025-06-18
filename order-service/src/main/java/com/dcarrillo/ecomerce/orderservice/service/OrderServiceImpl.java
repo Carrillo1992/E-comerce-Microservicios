@@ -1,6 +1,6 @@
 package com.dcarrillo.ecomerce.orderservice.service;
 
-import com.dcarrillo.ecomerce.orderservice.config.RabbitConfig;
+import com.dcarrillo.ecomerce.orderservice.config.RabbitMQConfig;
 import com.dcarrillo.ecomerce.orderservice.dto.*;
 import com.dcarrillo.ecomerce.orderservice.dto.event.CreateOrderEventDTO;
 import com.dcarrillo.ecomerce.orderservice.dto.event.ItemEventDTO;
@@ -17,7 +17,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
@@ -32,8 +31,8 @@ import java.util.stream.Collectors;
 @Service
 public class OrderServiceImpl implements OrderService {
 
-    private final String exhangeName = RabbitConfig.EXCHANGE_NAME;
-    private final String routingKey = RabbitConfig.ROUTING_KEY_ORDER_CREATED;
+    private final String exhangeName = RabbitMQConfig.EXCHANGE_NAME;
+    private final String routingKey = RabbitMQConfig.ROUTING_KEY_ORDER_CREATED;
     @Value("${product.service.url}")
     private String URL;
 
@@ -49,7 +48,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderResponseDTO createOrder(CreateOrderRequestDTO createOrderRequestDTO, long userId, String userEmail) {
+    public OrderResponseDTO createOrder(CreateOrderRequestDTO createOrderRequestDTO,long userId, String userEmail) {
+
         if (createOrderRequestDTO.getItems() == null || createOrderRequestDTO.getItems().isEmpty()){
             throw new IllegalArgumentException("La lista de items del pedido no puede estar vacia!");
         }

@@ -1,6 +1,6 @@
 package com.dcarrillo.ecomerce.orderservice.service;
 
-import com.dcarrillo.ecomerce.orderservice.config.RabbitConfig;
+import com.dcarrillo.ecomerce.orderservice.config.RabbitMQConfig;
 import com.dcarrillo.ecomerce.orderservice.dto.ProductForOrderDTO;
 import com.dcarrillo.ecomerce.orderservice.dto.request.CreateOrderRequestDTO;
 import com.dcarrillo.ecomerce.orderservice.dto.request.ItemOrderRequestDTO;
@@ -86,8 +86,8 @@ class OrderServiceImplTest {
         assertThat(createdOrder.getItems().get(0).getProductName()).isEqualTo("Test Product");
 
         verify(rabbitTemplate).convertAndSend(
-                eq(RabbitConfig.EXCHANGE_NAME),
-                eq(RabbitConfig.ROUTING_KEY_ORDER_CREATED),
+                eq(RabbitMQConfig.EXCHANGE_NAME),
+                eq(RabbitMQConfig.ROUTING_KEY_ORDER_CREATED),
                 any(Object.class)
         );
     }
